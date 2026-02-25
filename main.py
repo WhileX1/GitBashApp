@@ -496,6 +496,9 @@ class GitGuiApp(tk.Tk):
                                 self._safe_show_error("Errore", f"Errore durante la creazione della repository: {e}")
                         elif push_msg and ("up to date" in push_msg.lower() or "everything up-to-date" in push_msg.lower()):
                             self._safe_show_info("Push", f"Nessuna modifica da pushare: il branch locale è già aggiornato con il remoto.")
+                        elif push_msg and "failed to push some refs" in push_msg.lower():
+                            # Errore classico: il remote è avanti. Suggerisci pull prima di push
+                            self._safe_show_error("Errore Push", f"Il repository remoto contiene modifiche che non hai localmente.\n\nSoluzione: esegui PULL prima di fare PUSH di nuovo.\n\n{push_msg}")
                         else:
                             self._safe_show_error("Errore Push", push_msg)
                     self.update_dir_label(force_refresh=True)
@@ -573,6 +576,9 @@ class GitGuiApp(tk.Tk):
                 else:
                     if push_msg and ("up to date" in push_msg.lower() or "everything up-to-date" in push_msg.lower()):
                         show_info("Push", f"Nessuna modifica da pushare: il branch locale è già aggiornato con il remoto.")
+                    elif push_msg and "failed to push some refs" in push_msg.lower():
+                        # Errore classico: il remote è avanti. Suggerisci pull prima di push
+                        show_error("Errore Push", f"Il repository remoto contiene modifiche che non hai localmente.\n\nSoluzione: esegui PULL prima di fare PUSH di nuovo.\n\n{push_msg}")
                     else:
                         show_error("Errore Push", push_msg)
                 self.update_dir_label(force_refresh=True)
