@@ -235,12 +235,13 @@ class GitGuiApp(tk.Tk):
         # Pulsante Cambia Link
         self.btn_link = tk.Button(row3, text="Cambia Link", command=self.do_link, **btn_opts)
         self.btn_link.pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
-        # Riempi la riga successiva con pulsanti disabilitati per mantenere lo stile
-        for _ in range(1):
-            row = tk.Frame(button_frame)
-            row.pack(fill="x", pady=PAD_Y_MENU_ROW)
-            tk.Button(row, state="disabled", **btn_opts).pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
-            tk.Button(row, state="disabled", **btn_opts).pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
+        # Nuova riga per Clone Repository
+        row4 = tk.Frame(button_frame)
+        row4.pack(fill="x", pady=PAD_Y_MENU_ROW)
+        self.btn_clone = tk.Button(row4, text="Clone Repository", command=self.do_clone, **btn_opts)
+        self.btn_clone.pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
+        # Pulsante disabilitato per mantenere lo stile
+        tk.Button(row4, state="disabled", **btn_opts).pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
         self.button_frame = button_frame
 
     def update_dir_label(self, force_refresh=False):
@@ -1093,6 +1094,65 @@ class GitGuiApp(tk.Tk):
 
         # Focus sul primo campo
         origin_entry.focus()
+
+    def do_clone(self):
+        # Mostra la sezione per clonare una repository
+        self._show_clone_section()
+
+    def _show_clone_section(self):
+        # Mostra la sezione per clonare una repository da GitHub
+        self.clear_content_frame()
+        self.button_frame.pack_forget()
+        # Titolo della sezione
+        tk.Label(self.main_container, text="Clona Repository GitHub:", font=BOLD_FONT).pack(pady=PAD_Y_SECTION)
+        # Frame per i campi di inserimento (centrato verticalmente)
+        fields_frame = tk.Frame(self.main_container)
+        fields_frame.pack(pady=PAD_Y_DEFAULT, padx=PAD_X_DEFAULT, fill="both", expand=True, anchor="center")
+        # Prima riga - Titoli
+        titles_frame = tk.Frame(fields_frame)
+        titles_frame.pack(fill="x", pady=(0, PAD_Y_DEFAULT))
+        tk.Label(titles_frame, text="Account Remoto", font=BOLD_FONT).pack(side="left", expand=True, anchor="center")
+        tk.Label(titles_frame, text="Nome Repository", font=BOLD_FONT).pack(side="right", expand=True, anchor="center")
+        # Seconda riga - Campi di inserimento
+        inputs_frame = tk.Frame(fields_frame)
+        inputs_frame.pack(fill="x")
+        # Campo account remoto - pre-compila con utente GitHub autenticato
+        account_var = tk.StringVar()
+        github_user = self._cached_github_user
+        if github_user and not github_user.startswith('('):
+            account_var.set(github_user)
+        account_entry = tk.Entry(inputs_frame, textvariable=account_var, font=BOLD_FONT, width=ENTRY_WIDTH_SHORT)
+        account_entry.pack(side="left", expand=True, fill="x", padx=(0, PAD_X_DEFAULT))
+        # Campo nome repository
+        repo_var = tk.StringVar()
+        repo_entry = tk.Entry(inputs_frame, textvariable=repo_var, font=BOLD_FONT, width=ENTRY_WIDTH_SHORT)
+        repo_entry.pack(side="right", expand=True, fill="x", padx=(PAD_X_DEFAULT, 0))
+        # Frame pulsanti in basso
+        bottom_frame = tk.Frame(self.main_container)
+        bottom_frame.pack(side="bottom", fill="x", pady=PAD_Y_BUTTON)
+        # Pulsante Indietro
+        btn_back = tk.Button(bottom_frame, text="Indietro", command=self.show_menu, font=BOLD_FONT)
+        btn_back.pack(side="left", padx=PAD_X_DEFAULT)
+
+        # Pulsante Clona
+        def on_clone():
+            account_text = account_var.get().strip()
+            repo_text = repo_var.get().strip()
+            if not account_text or not repo_text:
+                show_error("Errore", "Account remoto e nome repository non possono essere vuoti.")
+                return
+            
+            clone_url = GitRepo.build_github_url(account_text, repo_text)
+            ok, msg = GitRepo.clone(clone_url)
+            if ok:
+                show_info("Successo", f"Repository clonata con successo in:\n{msg}")
+                self.show_menu()
+            else:
+                show_error("Errore durante il clone", msg)
+        btn_clone = tk.Button(bottom_frame, text="Clona", command=on_clone, font=BOLD_FONT)
+        btn_clone.pack(side="right", padx=PAD_X_DEFAULT)
+        # Focus sul primo campo
+        account_entry.focus()
 
     def do_link(self):
         # Mostra la sezione per modificare il link remoto

@@ -626,6 +626,30 @@ class GitRepo:
             return False, str(e)
 
     @staticmethod
+    def clone(url):
+        # Clona una repository da un URL GitHub
+        # Restituisce (success, percorso_repo_o_errore)
+        try:
+            # Estrai il nome della repo dall'URL per usarlo come cartella di destinazione
+            repo_name = url.rstrip('/').split('/')[-1].replace('.git', '')
+            # Clona nella directory corrente
+            clone_cmd = ['git', 'clone', url, repo_name]
+            output = subprocess.check_output(
+                clone_cmd,
+                stderr=subprocess.STDOUT,
+                text=True,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+            )
+            # Restituisci il percorso assoluto della repo clonata
+            cloned_path = os.path.abspath(repo_name)
+            return True, cloned_path
+        except subprocess.CalledProcessError as e:
+            err_msg = e.output.strip() if hasattr(e, 'output') and e.output else str(e)
+            return False, err_msg
+        except Exception as e:
+            return False, str(e)
+
+    @staticmethod
     def reset_last_commit():
         # Annulla l'ultimo commit, mantenendo i cambiamenti nel working directory.
         try:
