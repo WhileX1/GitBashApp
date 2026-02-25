@@ -235,10 +235,10 @@ class GitGuiApp(tk.Tk):
         # Pulsante Cambia Link
         self.btn_link = tk.Button(row3, text="Cambia Link", command=self.do_link, **btn_opts)
         self.btn_link.pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
-        # Nuova riga per Clone Repository
+        # Nuova riga per Clona Repository
         row4 = tk.Frame(button_frame)
         row4.pack(fill="x", pady=PAD_Y_MENU_ROW)
-        self.btn_clone = tk.Button(row4, text="Clone Repository", command=self.do_clone, **btn_opts)
+        self.btn_clone = tk.Button(row4, text="Clona Repository", command=self.do_clone, **btn_opts)
         self.btn_clone.pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
         # Pulsante disabilitato per mantenere lo stile
         tk.Button(row4, state="disabled", **btn_opts).pack(side="left", expand=True, fill="x", pady=PAD_Y_MENU_BTN, padx=BUTTON_PAD_INNER)
