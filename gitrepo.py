@@ -57,6 +57,9 @@ class GitRepo:
         untracked_files = [line[3:] for line in status.splitlines() if line.startswith('?? ')]
         moved = []
         for f in untracked_files:
+            # Skip .git directories and the .git-untracked directory itself
+            if f.startswith('.git'):
+                continue
             abs_f = os.path.join(repo_root, f)
             if os.path.isfile(abs_f):
                 dest = os.path.join(untracked_dir, os.path.basename(f))
