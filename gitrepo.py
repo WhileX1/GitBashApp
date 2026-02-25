@@ -626,14 +626,20 @@ class GitRepo:
             return False, str(e)
 
     @staticmethod
-    def clone(url):
+    def clone(url, destination=None):
         # Clona una repository da un URL GitHub
+        # Se destination non è specificato, clona nella directory corrente
         # Restituisce (success, percorso_repo_o_errore)
         try:
             # Estrai il nome della repo dall'URL per usarlo come cartella di destinazione
             repo_name = url.rstrip('/').split('/')[-1].replace('.git', '')
-            # Clona nella directory corrente
-            clone_cmd = ['git', 'clone', url, repo_name]
+            # Determina il percorso di clonazione
+            if destination:
+                clone_path = os.path.join(destination, repo_name)
+            else:
+                clone_path = repo_name
+            # Clona nella destinazione specificata
+            clone_cmd = ['git', 'clone', url, clone_path]
             output = subprocess.check_output(
                 clone_cmd,
                 stderr=subprocess.STDOUT,
@@ -641,7 +647,7 @@ class GitRepo:
                 creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0)
             )
             # Restituisci il percorso assoluto della repo clonata
-            cloned_path = os.path.abspath(repo_name)
+            cloned_path = os.path.abspath(clone_path)
             return True, cloned_path
         except subprocess.CalledProcessError as e:
             err_msg = e.output.strip() if hasattr(e, 'output') and e.output else str(e)

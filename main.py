@@ -1108,14 +1108,14 @@ class GitGuiApp(tk.Tk):
         # Frame per i campi di inserimento (centrato verticalmente)
         fields_frame = tk.Frame(self.main_container)
         fields_frame.pack(pady=PAD_Y_DEFAULT, padx=PAD_X_DEFAULT, fill="both", expand=True, anchor="center")
-        # Prima riga - Titoli
+        # Prima riga - Titoli (Account e Repository)
         titles_frame = tk.Frame(fields_frame)
         titles_frame.pack(fill="x", pady=(0, PAD_Y_DEFAULT))
         tk.Label(titles_frame, text="Account Remoto", font=BOLD_FONT).pack(side="left", expand=True, anchor="center")
         tk.Label(titles_frame, text="Nome Repository", font=BOLD_FONT).pack(side="right", expand=True, anchor="center")
-        # Seconda riga - Campi di inserimento
+        # Seconda riga - Campi di inserimento (Account e Repository)
         inputs_frame = tk.Frame(fields_frame)
-        inputs_frame.pack(fill="x")
+        inputs_frame.pack(fill="x", pady=(0, PAD_Y_DEFAULT))
         # Campo account remoto - pre-compila con utente GitHub autenticato
         account_var = tk.StringVar()
         github_user = self._cached_github_user
@@ -1127,6 +1127,26 @@ class GitGuiApp(tk.Tk):
         repo_var = tk.StringVar()
         repo_entry = tk.Entry(inputs_frame, textvariable=repo_var, font=BOLD_FONT, width=ENTRY_WIDTH_SHORT)
         repo_entry.pack(side="right", expand=True, fill="x", padx=(PAD_X_DEFAULT, 0))
+        # Terza riga - Titolo Percorso Destinazione
+        path_title_frame = tk.Frame(fields_frame)
+        path_title_frame.pack(fill="x", pady=(PAD_Y_DEFAULT, PAD_Y_DEFAULT))
+        tk.Label(path_title_frame, text="Percorso Destinazione", font=BOLD_FONT).pack(side="left", anchor="w")
+        # Quarta riga - Campo percorso e pulsante sfoglia
+        path_frame = tk.Frame(fields_frame)
+        path_frame.pack(fill="x")
+        path_var = tk.StringVar()
+        path_var.set(os.getcwd())  # Pre-compila con la directory corrente
+        path_entry = tk.Entry(path_frame, textvariable=path_var, font=BOLD_FONT)
+        path_entry.pack(side="left", expand=True, fill="x", padx=(0, PAD_X_DEFAULT))
+        
+        def browse_folder():
+            new_dir = filedialog.askdirectory(title="Seleziona cartella di destinazione")
+            if new_dir:
+                path_var.set(new_dir)
+        
+        btn_browse = tk.Button(path_frame, text="Sfoglia", command=browse_folder, font=BOLD_FONT, width=10)
+        btn_browse.pack(side="right")
+        
         # Frame pulsanti in basso
         bottom_frame = tk.Frame(self.main_container)
         bottom_frame.pack(side="bottom", fill="x", pady=PAD_Y_BUTTON)
@@ -1138,12 +1158,19 @@ class GitGuiApp(tk.Tk):
         def on_clone():
             account_text = account_var.get().strip()
             repo_text = repo_var.get().strip()
+            path_text = path_var.get().strip()
             if not account_text or not repo_text:
                 show_error("Errore", "Account remoto e nome repository non possono essere vuoti.")
                 return
+            if not path_text:
+                show_error("Errore", "Percorso destinazione non può essere vuoto.")
+                return
+            if not os.path.isdir(path_text):
+                show_error("Errore", f"Percorso destinazione non è valido:\n{path_text}")
+                return
             
             clone_url = GitRepo.build_github_url(account_text, repo_text)
-            ok, msg = GitRepo.clone(clone_url)
+            ok, msg = GitRepo.clone(clone_url, path_text)
             if ok:
                 show_info("Successo", f"Repository clonata con successo in:\n{msg}")
                 self.show_menu()
